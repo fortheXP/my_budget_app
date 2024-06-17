@@ -36,14 +36,20 @@ def root():
     return {"Happy": "Budgeting"}
 
 
-@app.get("/selectall")
+@app.get("/budgets")
 def main():
     return budgetdb.select_all()
 
 
-@app.post("/insert")
+@app.post("/budgets")
 def insert(item: item):
     budgetdb.insert(
         item.date, item.credit_or_debit, item.amount, item.category, item.comments
     )
     return {"added data": item}
+
+
+@app.delete("/budgets/{id}")
+def delete_budget(id: int):
+    budgetdb.delete(id)
+    return {"delete": id}

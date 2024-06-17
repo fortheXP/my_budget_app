@@ -32,3 +32,7 @@ class Budget_db:
             (date, credit_or_debit, amount, category, comments),
         )
         self.con.commit()
+
+    def delete(self, id: int):
+        self.cur.execute("DELETE FROM my_budget WHERE id = (?)", (id,))
+        self.con.commit()
