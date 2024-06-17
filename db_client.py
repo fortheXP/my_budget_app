@@ -3,7 +3,7 @@ import sqlite3
 
 class Budget_db:
     def __init__(self):
-        self.con = sqlite3.connect("budget.db")
+        self.con = sqlite3.connect("budget.db", check_same_thread=False)
         self.cur = self.con.cursor()
         self.table
 
@@ -25,7 +25,7 @@ class Budget_db:
         credit_or_debit: str,
         amount: float,
         category: str,
-        comments: str = None,
+        comments=None,
     ):
         self.cur.execute(
             "INSERT INTO  my_budget(date,credit_or_debit,amount,category,comments) VALUES (?,?,?,?,?)",
