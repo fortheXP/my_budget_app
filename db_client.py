@@ -33,6 +33,10 @@ class Budget_db:
         )
         self.con.commit()
 
+    def get_by_id(self, id: int):
+        res = self.cur.execute("SELECT * FROM my_budget WHERE id = (?)", (id,))
+        return res.fetchone()
+
     def delete(self, id: int):
         self.cur.execute("DELETE FROM my_budget WHERE id = (?)", (id,))
         self.con.commit()

@@ -59,6 +59,16 @@ def insert(item: item, db: Budget_db = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
+@app.get("/budgets/{id}")
+def get_by_id(id: int, db: Budget_db = Depends(get_db)):
+    try:
+        budget = db.get_by_id(id)
+        return budget
+    except Exception as e:
+        print(f"get_by_id: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
 @app.delete("/budgets/{id}")
 def delete_budget(id: int, db: Budget_db = Depends(get_db)):
     try:
