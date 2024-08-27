@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Response, status
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator
 from db_client import Budget_db
@@ -47,8 +47,11 @@ def main(db: Budget_db = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.post("/budgets")
-def insert(item: item, db: Budget_db = Depends(get_db)):
+@app.post("/budgets", status_code=status.HTTP_201_CREATED)
+def insert(
+    item: item,
+    db: Budget_db = Depends(get_db),
+):
     try:
         db.insert(
             item.date, item.credit_or_debit, item.amount, item.category, item.comments
@@ -63,14 +66,22 @@ def insert(item: item, db: Budget_db = Depends(get_db)):
 def get_by_id(id: int, db: Budget_db = Depends(get_db)):
     try:
         budget = db.get_by_id(id)
+        if not budget:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"record id : {id} not found",
+            )
         return budget
     except Exception as e:
         print(f"get_by_id: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.delete("/budgets/{id}")
-def delete_budget(id: int, db: Budget_db = Depends(get_db)):
+@app.delete("/budgets/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_budget(
+    id: int,
+    db: Budget_db = Depends(get_db),
+):
     try:
         db.delete(id)
         return {"delete": id}
