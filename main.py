@@ -1,9 +1,7 @@
-from typing import Annotated, Optional
-from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Response, status
-from pydantic import BaseModel
-from pydantic.functional_validators import AfterValidator
+from fastapi import FastAPI, HTTPException, Depends, status
 from db_client import Budget_db
+
+import schema
 
 
 app = FastAPI()
@@ -11,25 +9,6 @@ app = FastAPI()
 
 def get_db():
     return Budget_db()
-
-
-def validate_date(value: str) -> str:
-    try:
-        datetime.strptime(value, "%Y-%m-%d")
-    except Exception as e:
-        raise e
-    return value
-
-
-yyyymmdd = Annotated[str, AfterValidator(validate_date)]
-
-
-class item(BaseModel):
-    date: yyyymmdd
-    credit_or_debit: str
-    amount: float
-    category: str
-    comments: Optional[str] = None
 
 
 @app.get("/")
@@ -49,7 +28,7 @@ def main(db: Budget_db = Depends(get_db)):
 
 @app.post("/budgets", status_code=status.HTTP_201_CREATED)
 def insert(
-    item: item,
+    item: schema.item,
     db: Budget_db = Depends(get_db),
 ):
     try:
