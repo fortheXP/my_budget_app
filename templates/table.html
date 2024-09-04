@@ -1,0 +1,21 @@
+<div id="budget_table">
+	<table class="table">
+		<thead class="thead-dark">
+			<tr>
+				{% for entry in entries[0].keys() %}
+				<th scope="col">{{ entry }}</th>
+				{% endfor %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for entry in entries %}
+
+			<tr>
+				{% for key in entry.keys() %}
+				<td>{{ entry[key] }}</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

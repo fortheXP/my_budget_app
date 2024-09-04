@@ -1,5 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Form
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from db_client import Budget_db
+from typing import Annotated, Optional
 
 import schema
 
@@ -11,12 +14,41 @@ def get_db():
     return Budget_db()
 
 
+templates = Jinja2Templates("templates")
+
+
 @app.get("/")
+def root_index(request: Request):
+    accept_header = request.headers.get("Accept")
+    if accept_header and "text/html" in accept_header:
+        budgets = main(db=get_db())
+        return templates.TemplateResponse(
+            "index.html", {"request": request, "entries": budgets}
+        )
+    return {"Happy": "Budgeting"}
+
+
+@app.get("/api")
 def root():
     return {"Happy": "Budgeting"}
 
 
 @app.get("/budgets")
+def table_view(request: Request, db: Budget_db = Depends(get_db)):
+    try:
+        budgets = db.select_all()
+        accept_header = request.headers.get("Accept")
+        if accept_header and "text/html" in accept_header:
+            return templates.TemplateResponse(
+                "table.html", {"request": request, "entries": budgets}
+            )
+        return budgets
+    except Exception as e:
+        print(f"Selectall Error : {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@app.get("/api/budgets")
 def main(db: Budget_db = Depends(get_db)):
     try:
         budgets = db.select_all()
@@ -26,7 +58,28 @@ def main(db: Budget_db = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.post("/budgets", status_code=status.HTTP_201_CREATED)
+@app.post("/budgets/insert", response_class=HTMLResponse)
+def form_insert(
+    request: Request,
+    date: Annotated[str, Form()],
+    credit_or_debit: Annotated[str, Form()],
+    amount: Annotated[float, Form()],
+    category: Annotated[str, Form()],
+    comments: Optional[str] = Form(None),
+    db: Budget_db = Depends(get_db),
+):
+    try:
+        db.insert(date, credit_or_debit, amount, category, comments)
+        budgets = main(db=get_db())
+        return templates.TemplateResponse(
+            "table.html", {"request": request, "entries": budgets}
+        )
+    except Exception as e:
+        print(f"Insert Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@app.post("/api/budgets", status_code=status.HTTP_201_CREATED)
 def insert(
     item: schema.item,
     db: Budget_db = Depends(get_db),
@@ -41,7 +94,7 @@ def insert(
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/budgets/{id}")
+@app.get("/api/budgets/{id}")
 def get_by_id(id: int, db: Budget_db = Depends(get_db)):
     try:
         budget = db.get_by_id(id)
@@ -56,7 +109,7 @@ def get_by_id(id: int, db: Budget_db = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.delete("/budgets/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/api/budgets/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_budget(
     id: int,
     db: Budget_db = Depends(get_db),

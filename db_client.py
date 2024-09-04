@@ -1,10 +1,15 @@
 import sqlite3
 
 
+def dict_factory(cur, row):
+    fields = [column[0] for column in cur.description]
+    return {key: value for key, value in zip(fields, row)}
+
+
 class Budget_db:
     def __init__(self):
         self.con = sqlite3.connect("budget.db", check_same_thread=False)
-        self.con.row_factory = sqlite3.Row
+        self.con.row_factory = dict_factory
         self.cur = self.con.cursor()
         self.table
 
@@ -15,7 +20,7 @@ class Budget_db:
         )
 
     def select_all(self):
-        res = self.cur.execute("SELECT * FROM my_budget ")
+        res = self.cur.execute("SELECT * FROM my_budget order by id DESC LIMIT 10 ")
         return res.fetchall()
 
     def insert(
