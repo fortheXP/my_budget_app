@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 
 def dict_factory(cur, row):
@@ -44,3 +45,12 @@ class Budget_db:
     def delete(self, id: int):
         self.cur.execute("DELETE FROM my_budget WHERE id = (?)", (id,))
         self.con.commit()
+
+    def get_month_budget(self):
+        first_date = datetime.today().replace(day=1)
+        formated_date = first_date.strftime("%Y-%m-%d")
+        res = self.cur.execute(
+            "SELECT SUM(CASE WHEN credit_or_debit='CRE' THEN amount ELSE 0 END) as Income,SUM(CASE WHEN credit_or_debit='DEB' THEN amount ELSE 0 END) as Expense ,SUM(CASE WHEN credit_or_debit='CRE' THEN amount ELSE -amount END) as Remaining FROM my_budget WHERE date >= (?)",
+            (formated_date,),
+        )
+        return res.fetchone()

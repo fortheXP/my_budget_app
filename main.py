@@ -109,6 +109,16 @@ def get_by_id(id: int, db: Budget_db = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
+@app.get("/budgets/month")
+def budget_current_month(db: Budget_db = Depends(get_db)):
+    try:
+        budget_of_current_month = db.get_month_budget()
+        return budget_of_current_month
+    except Exception as e:
+        print(f"get_by_id: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
 @app.delete("/api/budgets/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_budget(
     id: int,
