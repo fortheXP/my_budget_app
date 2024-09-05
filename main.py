@@ -22,8 +22,10 @@ def root_index(request: Request):
     accept_header = request.headers.get("Accept")
     if accept_header and "text/html" in accept_header:
         budgets = main(db=get_db())
+        expense = budget_current_month(db=get_db())
         return templates.TemplateResponse(
-            "index.html", {"request": request, "entries": budgets}
+            "index.html",
+            {"request": request, "entries": budgets, "expense": expense["Expense"]},
         )
     return {"Happy": "Budgeting"}
 

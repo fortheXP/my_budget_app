@@ -10,11 +10,6 @@
 <head>
 	<title>My Budget App</title>
 	<style>
-		h1 {
-			font-family: 'Courier New', Courier, monospace;
-			text-align: center;
-		}
-
 		.container {
 			display: flex;
 			justify-content: center;
@@ -46,7 +41,7 @@
 </head>
 
 <body>
-	<h1 class="display-3">Enter Transaction</h1>
+	{% include 'summary.html' %}<br>
 	<div class="container">
 		<div class="row">
 			<div class="col">
