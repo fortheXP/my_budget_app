@@ -73,8 +73,9 @@ def form_insert(
     try:
         db.insert(date, credit_or_debit, amount, category, comments)
         budgets = main(db=get_db())
+        expense = budget_current_month(db=get_db())
         return templates.TemplateResponse(
-            "table.html", {"request": request, "entries": budgets}
+            "table.html", {"request": request, "entries": budgets, "expense": expense["Expense"] }
         )
     except Exception as e:
         print(f"Insert Error: {e}")
