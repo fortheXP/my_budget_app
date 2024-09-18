@@ -133,3 +133,20 @@ def delete_budget(
     except Exception as e:
         print(f"Delete Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@app.delete("/budgets/{id}", status_code=status.HTTP_200_OK)
+def delete_budget_table(
+    request: Request,
+    id: int,
+    db: Budget_db = Depends(get_db),
+):
+    try:
+        db.delete(id)
+        budgets = main(db=get_db())
+        expense = budget_current_month(db=get_db())
+        return templates.TemplateResponse(
+            "table.html", {"request": request, "entries": budgets, "expense": expense["Expense"] }
+        )
+    except Exception as e:
+        print(f"Delete Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

@@ -10,14 +10,19 @@
 				{% endfor %}
 			</tr>
 		</thead>
-		<tbody>
+		<tbody hx-confirm="Are you sure?" hx-target="#budget_table"  hx-swap="outHTML">
 			{% for entry in entries %}
 
 			<tr>
 				{% for key in entry.keys() %}
 				<td>{{ entry[key] }}</td>
 				{% endfor %}
+            <td>
+                <button class="btn danger" hx-delete="/budgets/{{entry["id"]}}">
+                  Delete
+                </button>
 			</tr>
+            </td>
 			{% endfor %}
 		</tbody>
 	</table>
