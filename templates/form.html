@@ -1,4 +1,4 @@
-<form hx-target="#budget_table" hx-post="/budgets/insert" hx-swap="outerHTML">
+<form hx-target="#budget_table" hx-post="/budgets/insert" hx-swap="outerHTML" hx-on::after-request="this.reset()">
 	<div class="row mb-3">
 		<label for="fdata" class="col-sm-2 col-form-label">Date</label>
 		<div class="col-sm-2">
