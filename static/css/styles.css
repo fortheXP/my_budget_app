@@ -1,0 +1,155 @@
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f1f3f5; /* Light background */
+        margin: 0;
+        padding: 0;
+    }
+
+    .navbar {
+        background-color: #343a40; /* Dark background for navbar */
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .nav-link {
+        color: #ffffff; /* White color for navbar links */
+        margin-right: 20px;
+    }
+
+    .nav-link:hover {
+        color: #adb5bd; /* Light gray on hover */
+    }
+    /* Hero section */
+    .hero {
+        padding: 80px 20px;
+        text-align: left;
+        margin-top: 50px; /* To make room for the fixed navbar */
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+     /* Sign-Up Form Container */
+        .signup-form-container {
+            max-width: 500px;
+            margin: 100px auto;
+            background-color: #343a40; /* Dark background for the form */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+            color: white; /* White text */
+        }
+
+        .signup-form-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            color: white; /* White heading */
+        }
+
+        .signup-form-container .form-label {
+            font-weight: 600;
+            color: #adb5bd; /* Light gray for label text */
+        }
+
+        .signup-form-container .form-control {
+            background-color: #495057;
+            border: 1px solid #495057;
+            color: white;
+        }
+
+        .signup-form-container .form-control:focus {
+            background-color: #343a40;
+            border-color: #007bff;
+            box-shadow: none;
+            color: white;
+        }
+
+        .signup-btn {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .signup-btn:hover {
+            background-color: #0056b3;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    .login-form-container {
+            max-width: 500px;
+            margin: 100px auto;
+            background-color: #343a40; /* Dark background for the form */
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+            color: white; /* White text */
+        }
+
+        .login-form-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            color: white; /* White heading */
+        }
+
+        .login-form-container .form-label {
+            font-weight: 600;
+            color: #adb5bd; /* Light gray for label text */
+        }
+
+        .login-form-container .form-control {
+            background-color: #495057;
+            border: 1px solid #495057;
+            color: white;
+        }
+
+        .login-form-container .form-control:focus {
+            background-color: #343a40;
+            border-color: #007bff;
+            box-shadow: none;
+            color: white;
+        }
+
+        .login-btn {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .signup-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }

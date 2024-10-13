@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator
 from typing import Annotated, Optional
 
-
 def validate_date(value: str) -> str:
     try:
         datetime.strptime(value, "%Y-%m-%d")
@@ -29,3 +28,25 @@ class ItemBase(BaseModel):
     amount: float
     category: str
     comments: Optional[str] = None
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+
+    class config:
+        orm_mode = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class Token_Data(BaseModel):
+    id: Optional[int] = None

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+    <!-- Sign-Up Form -->
+    <div class="signup-form-container">
+        <h2>Create Your Account</h2>
+        <form action="/signup" method="POST">
+            <!-- Full Name Field -->
+            <div class="mb-3">
+                <label for="username"  class="form-label">Username</label>
+                <input type="text" hx-swap="outerHTML" hx-post="/check_username" hx-trigger="keyup changed delay:1s" hx-target="#username_result" class="form-control" id="username" title="Number alphabet and _ only allowed" pattern="^[a-zA-Z_]{4,20}$" name="username" placeholder="Username" required>
+            </div>
+        <div id="username_result"></div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" hx-swap="outerHTML" hx-post="/password_check" hx-trigger="keyup changed delay:1s" hx-target="#password_check" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+            </div>
+            <div id="password_check">
+                {{ message }}
+            <button type="submit" disabled class="btn signup-btn w-100">Sign Up</button>
+            </div>
+        </form>
+
+        <!-- Login Link -->
+        <div class="login-link">
+            <p>Already have an account? <a href="/login">Login here</a></p>
+        </div>
+    </div>
+{% endblock %}

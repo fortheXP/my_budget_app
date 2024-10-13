@@ -6,7 +6,9 @@
 		<thead class="thead-dark">
 			<tr>
 				{% for entry in entries[0].keys() %}
+                {% if entry != "id" %}
 				<th scope="col">{{ entry }}</th>
+                {% endif %}
 				{% endfor %}
 			</tr>
 		</thead>
@@ -15,11 +17,14 @@
 
 			<tr>
 				{% for key in entry.keys() %}
+                {% if key != "id" %}
 				<td>{{ entry[key] }}</td>
+                {% endif %}
 				{% endfor %}
             <td>
-                <button class="btn danger" hx-delete="/budgets/{{entry["id"]}}">
-                  Delete
+                <button  class="btn danger" hx-delete="/budgets/{{entry["id"]}}">
+
+<span>Delete</span>
                 </button>
 			</tr>
             </td>

@@ -1,0 +1,32 @@
+
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+    <div class="login-form-container">
+        <h2>Login to Your Account</h2>
+        <form action="/login" method="POST">
+            <!-- Username Field -->
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="username" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            {{ message }}
+            <!-- Submit Button -->
+            <button type="submit" class="btn login-btn w-100">Login</button>
+        </form>
+
+        <!-- Sign-Up Link -->
+        <div class="signup-link">
+            <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+        </div>
+    </div>
+{% endblock %}
