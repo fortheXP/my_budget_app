@@ -1,4 +1,3 @@
-from operator import and_
 from fastapi import FastAPI, HTTPException, Depends, Response, status, Request, Form 
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -9,12 +8,13 @@ from db_client import Budget_db
 from database import models, db_client
 from typing import Annotated, Optional
 from pathlib import Path
-from app.routers.api import api_users
+from app.routers.api import api_users,api_transactions
 import schema
 from app import utils, oauth2
 
 app = FastAPI()
 app.include_router(api_users.router)
+app.include_router(api_transactions.router)
 
 app.mount(
     "/static",
@@ -173,20 +173,6 @@ def filter_transactions(request: Request, type: Annotated[str, Form()],db: Sessi
 def root():
     return {"Happy": "Budgeting"}
 
-
-@app.get("/budgets")
-def table_view(request: Request, db: Budget_db = Depends(get_db)):
-    try:
-        budgets = db.select_all()
-        accept_header = request.headers.get("Accept")
-        if accept_header and "text/html" in accept_header:
-            return templates.TemplateResponse(
-                "table.html", {"request": request, "entries": budgets}
-            )
-        return budgets
-    except Exception as e:
-        print(f"Selectall Error : {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.get("/api/budgets")

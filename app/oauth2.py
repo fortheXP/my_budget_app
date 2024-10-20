@@ -51,6 +51,7 @@ def get_user(access_token: str = Cookie(None) , db : Session = Depends(db_client
         print(access_token)
         token = verify_auth_token(access_token, credentials_exception)
         user = db.query(models.User).filter(models.User.id == token.id).first()
+        print(user)
         if user is None:
             return credentials_exception
         return user

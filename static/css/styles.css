@@ -9,6 +9,9 @@
         background-color: #343a40; /* Dark background for navbar */
     }
 
+    .base-content{
+        margin-top: 80px
+    }
     .navbar-brand {
         font-size: 1.5rem;
         color: #ffffff;
@@ -27,7 +30,7 @@
     .hero {
         padding: 80px 20px;
         text-align: left;
-        margin-top: 50px; /* To make room for the fixed navbar */
+        margin-top: 50px; 
     }
 
     .hero h1 {
