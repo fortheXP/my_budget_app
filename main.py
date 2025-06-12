@@ -160,6 +160,7 @@ def filter_transactions(request: Request, type: Annotated[str, Form()],db: Sessi
             "login.html",
             {"request" : request, "message": "Session Expired, Please Login again"}
         )
+    print(type)
     if type=="Any":
         transactions = db.query(models.Transactions).filter(models.Transactions.user_id==user.id).options(joinedload(models.Transactions.category)).all()
     else:
@@ -175,37 +176,7 @@ def root():
 
 
 
-@app.get("/api/budgets")
-def main(db: Budget_db = Depends(get_db)):
-    try:
-        budgets = db.select_all()
-        return budgets
-    except Exception as e:
-        print(f"Selectall Error : {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-
-@app.post("/budgets/insert", response_class=HTMLResponse)
-def form_insert(
-    request: Request,
-    date: Annotated[str, Form()],
-    credit_or_debit: Annotated[str, Form()],
-    amount: Annotated[float, Form()],
-    category: Annotated[str, Form()],
-    comments: Optional[str] = Form(None),
-    db: Budget_db = Depends(get_db),
-):
-    try:
-        db.insert(date, credit_or_debit, amount, category, comments)
-        budgets = main(db=get_db())
-        expense = budget_current_month(db=get_db())
-        return templates.TemplateResponse(
-            "table.html",
-            {"request": request, "entries": budgets, "expense": expense["Expense"]},
-        )
-    except Exception as e:
-        print(f"Insert Error: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.post("/api/budgets", status_code=status.HTTP_201_CREATED)

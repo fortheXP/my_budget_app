@@ -1,8 +1,12 @@
+import enum
 import sqlalchemy as sa
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, relationship
 from database.db_client import Base, engine
 from datetime import date
 
+class Type(enum.Enum):
+    Income = "Income"
+    Expense = "Expense"
 
 class User(Base):
     __tablename__ = "users"
@@ -32,7 +36,7 @@ class Transactions(Base):
     )
     amount = sa.Column(sa.Numeric(10, 2), nullable=False)
     category = relationship("Category", back_populates="transactions")
-    type = sa.Column(sa.Enum("Income", "Expense", name="type_enum"), nullable=False)
+    type : Mapped[Type] 
     comment = sa.Column(sa.String)
     date = sa.Column(sa.Date, nullable=False, default=date.today)
 
