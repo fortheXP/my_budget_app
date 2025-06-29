@@ -11,6 +11,7 @@ from pathlib import Path
 from app.routers.api import api_users,api_transactions
 import schema
 from app import utils, oauth2
+from datetime import date
 
 app = FastAPI()
 app.include_router(api_users.router)
@@ -153,6 +154,51 @@ def transactions(request: Request,db: Session = Depends(db_client.get_db), user:
         "transactions.html",
         {"request" : request, "user" : user ,"transactions": transactions}
     )
+
+@app.get("/transactions/insert")
+def transactions_insert(request: Request,db: Session = Depends(db_client.get_db), user: schema.UserOut = Depends(oauth2.get_user)):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request" : request, "message": "Session Expired, Please Login again"}
+        )
+    transactions = db.query(models.Transactions).filter(models.Transactions.user_id==user.id).options(joinedload(models.Transactions.category)).all()
+    return templates.TemplateResponse(
+        "insert.html",
+        {"request" : request, "user": user}
+    )
+
+@app.post("/transactions/insert")
+def insert_transaction(
+request: Request,
+    date: Annotated[str, Form()],
+    credit_or_debit: Annotated[str, Form()],
+    amount: Annotated[float, Form()],
+    category: Annotated[str, Form()],
+    comments: Annotated[str, Form()],
+db: Session = Depends(db_client.get_db), user: schema.UserOut = Depends(oauth2.get_user)
+
+):
+
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request" : request, "message": "Session Expired, Please Login again"}
+        )
+    try:
+        trans = schema.CreateTransaction(date=date,type=credit_or_debit,amount=amount,category=category,comments=comments)
+        new_trans = models.Transactions(**trans.model_dump())
+        db.add(new_trans)
+        db.commit()
+
+        return templates.TemplateResponse(
+            "insert.html",
+            {"request" : request, "user": user}
+        )
+    except Exception as e:
+        print(f"Insert Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 @app.post("/transactions/filter")
 def filter_transactions(request: Request, type: Annotated[str, Form()],db: Session = Depends(db_client.get_db), user: schema.UserOut = Depends(oauth2.get_user)):
     if user is None:
@@ -232,20 +278,20 @@ def delete_budget(
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.delete("/budgets/{id}", status_code=status.HTTP_200_OK)
-def delete_budget_table(
-    request: Request,
-    id: int,
-    db: Budget_db = Depends(get_db),
-):
-    try:
-        db.delete(id)
-        budgets = main(db=get_db())
-        expense = budget_current_month(db=get_db())
-        return templates.TemplateResponse(
-            "table.html",
-            {"request": request, "entries": budgets, "expense": expense["Expense"]},
-        )
-    except Exception as e:
-        print(f"Delete Error: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+#@app.delete("/budgets/{id}", status_code=status.HTTP_200_OK)
+#def delete_budget_table(
+#    request: Request,
+#    id: int,
+#    db: Budget_db = Depends(get_db),
+#):
+#    try:
+#        db.delete(id)
+#        budgets = main(db=get_db())
+#        expense = budget_current_month(db=get_db())
+#        return templates.TemplateResponse(
+#            "table.html",
+#            {"request": request, "entries": budgets, "expense": expense["Expense"]},
+#        )
+#    except Exception as e:
+#        print(f"Delete Error: {e}")
+#        raise HTTPException(status_code=500, detail="Internal Server Error")

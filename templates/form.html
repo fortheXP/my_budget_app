@@ -1,13 +1,13 @@
-<form hx-target="#budget_table" hx-post="/budgets/insert" hx-swap="outerHTML" hx-on::after-request="this.reset()">
+<form action="/transactions/insert" method="POST" hx-post="/transactions/insert" hx-swap="outerHTML" hx-on::after-request="this.reset()">
 	<div class="row mb-3">
-		<label for="fdata" class="col-sm-2 col-form-label">Date</label>
-		<div class="col-sm-2">
+		<label for="fdate" class="col-sm-4 col-form-label">Date</label>
+		<div class="col-sm-4">
 			<input type="date" class="form-control" id="fdata" name="date" required><br>
 		</div>
 	</div>
 	<fieldset class="row mb-3">
-		<legend class="col-form-label col-sm-2 pt-0">Credit or Debit</legend>
-		<div class="col-sm-2">
+		<legend class="col-form-label col-sm-4 pt-0">Credit or Debit</legend>
+		<div class="col-sm-4">
 			<div class="form-check">
 				<input class="form-check-input" type="radio" name="credit_or_debit" id="gridRadios1"
 					value="CRE" checked>
@@ -25,20 +25,20 @@
 		</div>
 	</fieldset>
 	<div class="row mb-3">
-		<label for="famount" class="col-sm-2 col-form-label">Amount</label>
-		<div class="col-sm-2">
+		<label for="famount" class="col-sm-4 col-form-label">Amount</label>
+		<div class="col-sm-4">
 			<input type="number" class="form-control" id="amount" name="amount" required>
 		</div>
 	</div>
 	<div class="row mb-3">
-		<label for="fcategory" class="col-sm-2 col-form-label">Category</label>
-		<div class="col-sm-2">
+		<label for="fcategory" class="col-sm-4 col-form-label">Category</label>
+		<div class="col-sm-4">
 			<input type="text" id="fcategory" class="form-control" name="category" required>
 		</div>
 	</div>
 	<div class="row mb-3">
-		<label for="fcomments" class="col-sm-2 col-form-label">Comments</label>
-		<div class="col-sm-2">
+		<label for="fcomments" class="col-sm-4 col-form-label">Comments</label>
+		<div class="col-sm-4">
 			<textarea id="fcomments" name="comments" class="form-control"></textarea>
 		</div>
 	</div>
