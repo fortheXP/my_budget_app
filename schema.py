@@ -2,18 +2,18 @@ from datetime import datetime
 from pydantic import BaseModel
 from pydantic.functional_validators import AfterValidator
 from typing import Annotated, Optional
-from enum import Enum
+from datetime import date
 
 
-def validate_date(value: str) -> str:
+def validate_date(value: date) -> date:
     try:
-        datetime.strptime(value, "%Y-%m-%d")
+        datetime.s(value, "%Y-%m-%d")
     except Exception as e:
         raise e
     return value
 
 
-yyyymmdd = Annotated[str, AfterValidator(validate_date)]
+yyyymmdd = Annotated[date, AfterValidator(validate_date)]
 
 class UserCreate(BaseModel):
     username: str
@@ -27,23 +27,21 @@ class UserOut(BaseModel):
     class config:
         orm_mode = True
 
-class TypeEnum(str,Enum):
-    Income = "Income"
-    Expense = "Expense"
 
 class item(BaseModel):
     date: yyyymmdd
     credit_or_debit: str
     amount: float
-    category: str
+    category_id: int
     comments: Optional[str] = None
 
 class BaseTransactions(BaseModel):
-    date: yyyymmdd
-    type: TypeEnum 
+    date: date
+    type: str 
     amount: float
-    category: str
-    comments: Optional[str] = None
+    category_id: int
+    user_id : int
+    comment: Optional[str] = None
 
 class CreateTransaction(BaseTransactions):
     pass

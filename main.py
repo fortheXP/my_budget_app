@@ -162,7 +162,6 @@ def transactions_insert(request: Request,db: Session = Depends(db_client.get_db)
             "login.html",
             {"request" : request, "message": "Session Expired, Please Login again"}
         )
-    transactions = db.query(models.Transactions).filter(models.Transactions.user_id==user.id).options(joinedload(models.Transactions.category)).all()
     return templates.TemplateResponse(
         "insert.html",
         {"request" : request, "user": user}
@@ -171,8 +170,8 @@ def transactions_insert(request: Request,db: Session = Depends(db_client.get_db)
 @app.post("/transactions/insert")
 def insert_transaction(
 request: Request,
-    date: Annotated[str, Form()],
-    credit_or_debit: Annotated[str, Form()],
+    date: Annotated[date, Form()],
+    in_or_exp: Annotated[str, Form()],
     amount: Annotated[float, Form()],
     category: Annotated[str, Form()],
     comments: Annotated[str, Form()],
@@ -186,13 +185,16 @@ db: Session = Depends(db_client.get_db), user: schema.UserOut = Depends(oauth2.g
             {"request" : request, "message": "Session Expired, Please Login again"}
         )
     try:
-        trans = schema.CreateTransaction(date=date,type=credit_or_debit,amount=amount,category=category,comments=comments)
-        new_trans = models.Transactions(**trans.model_dump())
+        category_obj = db.query(models.Category).filter(models.Category.name==category).first()
+        category_id = category_obj.id if category_obj else None
+
+        trans = schema.CreateTransaction(date=date,type=in_or_exp,user_id=user.id,amount=amount,category_id=category_id,comment=comments)
+        new_trans = models.Transactions(**trans.dict())
         db.add(new_trans)
         db.commit()
 
         return templates.TemplateResponse(
-            "insert.html",
+            "form.html",
             {"request" : request, "user": user}
         )
     except Exception as e:
