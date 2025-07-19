@@ -5,17 +5,42 @@
     <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="{{url_for('static', path='/images/budgeting.png')}}"  width="33" height="30" class="d-inline-block align-text-top me-2">
       <span class="fw-bold text-light">Budgeting App</span>
-    <ul class="nav navbar-nav d-flex justify-content-end align-items-center" style="flex-direction: row;">
-      <li class="nav-item"><a href="{{ url_for('signup') }}"  class="nav-link text-light px-3 py-2"><i class="bi bi-person-fill"></i> Sign Up</a></li>
-      <li class="nav-item"><a href="{{ url_for('login') }}" class="nav-link text-light px-3 py-2"><i class="bi bi-box-arrow-in-right"></i> login</a></li>
+    </a>
+    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
+      <li class="nav-item mx-2">
+          <a href="{{ url_for('signup') }}"  class="nav-link d-flex align-items-center text-light">
+              <i class="bi bi-person-fill"></i> Sign Up
+          </a>
+      </li>
+      <li class="nav-item mx-2">
+          <a href="{{ url_for('login') }}" class="nav-link d-flex align-items-center text-light">
+              <i class="bi bi-box-arrow-in-right"></i> login
+          </a>
+      </li>
     </ul>
     {% else %}
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
             <img src="{{url_for('static', path='/images/budgeting.png')}}"  width="33" height="30" class="d-inline-block align-text-top me-2">
       <span class="fw-bold text-light">Budgeting App</span>
-    <ul class="nav navbar-nav d-flex justify-content-end align-items-center" style="flex-direction: row;">
-      <li class="nav-item"><a href="{{ url_for('transactions') }}"  class="nav-link text-light px-3 py-2"><i class="bi bi-person-fill"></i> Transactions</a></li>
-      <li class="nav-item"><a href="{{ url_for('logout') }}" class="nav-link text-light px-3 py-2"><i class="bi bi-box-arrow-in-right"></i> log out</a></li>
+    </a>
+    <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
+      <li class="nav-item mx-2">
+          <a href="{{ url_for('transactions_insert') }}"  class="nav-link d-flex align-items-center text-light">
+              <i class="bi bi-plus-circle-fill me-1"></i>New Transactions
+          </a>
+      </li> 
+      <li class="nav-item mx-2">
+          <a href="{{ url_for('transactions') }}"  class="nav-link d-flex align-items-center text-light">
+              <i class="bi bi-list-ul me-1"></i> Transactions
+          </a>
+
+      </li>
+      <li class="nav-item mx-2">
+          <a href="{{ url_for('logout') }}" class="nav-link d-flex align-items-center text-light">
+              <i class="bi bi-box-arrow-right me-1"></i> log out
+          </a>
+      </li>
+    </ul>
       {% endif %}
   </div>
 </nav>
