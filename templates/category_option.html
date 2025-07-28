@@ -1,0 +1,6 @@
+<select name="category" id="category" required>
+    <option value="">-- Select an item --</option>
+    {% for category in categories %}
+        <option value="{{ category.id }}">{{ category.name }}</option>
+    {% endfor %}
+</select>

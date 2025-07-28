@@ -4,9 +4,11 @@ from sqlalchemy.orm import Mapped, relationship
 from database.db_client import Base, engine
 from datetime import date
 
+
 class Type(enum.Enum):
     Income = "Income"
     Expense = "Expense"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -21,6 +23,7 @@ class Category(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.Integer, unique=True, nullable=True)
+    type = sa.Column(sa.String, unique=True, index=True)
     transactions = relationship("Transactions", back_populates="category")
 
 
@@ -36,7 +39,7 @@ class Transactions(Base):
     )
     amount = sa.Column(sa.Numeric(10, 2), nullable=False)
     category = relationship("Category", back_populates="transactions")
-    type : Mapped[Type] 
+    type: Mapped[Type]
     comment = sa.Column(sa.String)
     date = sa.Column(sa.Date, nullable=False, default=date.today)
 

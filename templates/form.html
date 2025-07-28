@@ -1,8 +1,7 @@
         <div class="card-body">
           <form action="/transactions/insert" method="POST" 
                 hx-post="/transactions/insert" 
-                hx-swap="outerHTML" 
-                hx-on::after-request="this.reset()">
+			hx-swap="outerHTML" >
 
             <!-- Date -->
             <div class="mb-3 row">
@@ -17,12 +16,28 @@
               <legend class="col-form-label col-sm-3 pt-0">Type</legend>
               <div class="col-sm-9">
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="in_or_exp" id="credit" value="Income" checked>
-                  <label class="form-check-label" for="credit">Credit</label>
+                  <input class="form-check-input" type="radio" 
+			name="in_or_exp" id="credit" value="Income" 
+			hx-include="[name='in_or_exp']:checked"
+			hx-trigger="change, load from:body"
+			hx-post="/get_category" 
+			hx-swap="innerHTML"
+			hx-target = "#dropdown_category"
+  			onchange="console.log('Income radio changed')" checked>          
+		<label class="form-check-label" for="credit">Income</label>
                 </div>
                 <div class="form-check form-check-inline">
-                  <input class="form-check-input" type="radio" name="in_or_exp" id="debit" value="Expense">
-                  <label class="form-check-label" for="debit">Debit</label>
+                  <input class="form-check-input" type="radio" 
+			name="in_or_exp"
+			id="debit" 
+			value="Expense" 
+			hx-include="[name='in_or_exp']:checked"
+			hx-trigger="change"
+			hx-post="/get_category" 
+			hx-swap="innerHTML"
+  			onchange="console.log('Income radio changed')"
+			hx-target="#dropdown_category">
+                  <label class="form-check-label" for="debit">Expense</label>
                 </div>
               </div>
             </fieldset>
@@ -38,8 +53,10 @@
             <!-- Category -->
             <div class="mb-3 row">
               <label for="fcategory" class="col-sm-3 col-form-label">Category</label>
-              <div class="col-sm-9">
-                <input type="text" class="form-control" id="fcategory" name="category" required>
+              <div class="col-sm-9" id="dropdown_category"
+                    <select name="category" id="category" required>
+                        <option value="">-- Loading... --</option>
+                    </select>
               </div>
             </div>
 
