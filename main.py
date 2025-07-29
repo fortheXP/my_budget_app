@@ -224,7 +224,7 @@ def insert_transaction(
     in_or_exp: Annotated[str, Form()],
     amount: Annotated[float, Form()],
     category: Annotated[int, Form()],
-    comments: Annotated[str, Form()],
+    comments: Annotated[Optional[str], Form()] = None,
     db: Session = Depends(db_client.get_db),
     user: schema.UserOut = Depends(oauth2.get_user),
 ):
