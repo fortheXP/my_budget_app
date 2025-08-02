@@ -22,7 +22,7 @@ class Category(Base):
     __tablename__ = "category"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(sa.Integer, unique=True, nullable=True)
+    name = sa.Column(sa.String, unique=True, nullable=True)
     type = sa.Column(sa.String, unique=True, index=True)
     transactions = relationship("Transactions", back_populates="category")
 
@@ -39,9 +39,6 @@ class Transactions(Base):
     )
     amount = sa.Column(sa.Numeric(10, 2), nullable=False)
     category = relationship("Category", back_populates="transactions")
-    type: Mapped[Type]
+    type = sa.Column(sa.Enum(Type), nullable=False)
     comment = sa.Column(sa.String)
     date = sa.Column(sa.Date, nullable=False, default=date.today)
-
-
-Base.metadata.create_all(bind=engine)
