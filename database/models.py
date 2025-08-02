@@ -23,7 +23,7 @@ class Category(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String, unique=True, nullable=True)
-    type = sa.Column(sa.String, unique=True, index=True)
+    type = sa.Column(sa.Enum(Type), nullable=False, index=True)
     transactions = relationship("Transactions", back_populates="category")
 
 
