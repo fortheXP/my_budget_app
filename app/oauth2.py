@@ -7,12 +7,9 @@ from sqlalchemy.orm import Session
 from app import utils
 from database import models, db_client
 import schema
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/auth")
-
-SECRET_KEY = "4d738a2afc1ceff0627a7cba206af7c56ff4b688249139da901eda4fcf1f11ce"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def authenticate_user(db: Session, username: str, password: str):
