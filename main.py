@@ -307,15 +307,20 @@ def get_chat(request: Request, user: schema.UserOut = Depends(oauth2.get_user)):
 
 
 @app.websocket("/ws")
-async def websocket_connection(websocket: WebSocket):
+async def websocket_connection(
+    websocket: WebSocket, user: schema.UserOut = Depends(oauth2.get_user)
+):
+    if user is None:
+        return templates.env.get_template("login.html").render(
+            {"message": "Session Expired, Please Login again"}
+        )
     await websocket.accept()
     messages = []
     while True:
         try:
             data = await websocket.receive_text()
-            print(data)
             parsed = json.loads(data)
-            user_msg = parsed.get("message", "")
+            user_msg = parsed.get("message", "").strip()
             user_html = templates.env.get_template("chat_partial.html").render(
                 {"message_text": user_msg}
             )
