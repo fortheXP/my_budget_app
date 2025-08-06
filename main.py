@@ -1,4 +1,7 @@
+import os
 import json
+import uuid
+from datetime import date
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -21,7 +24,8 @@ from pathlib import Path
 from app.routers.api import api_users, api_transactions
 import schema
 from app import utils, oauth2
-from datetime import date
+from app.services.gemini_chat_service import GeminiAIChatService
+from config import GEMINI_KEY
 
 app = FastAPI()
 app.include_router(api_users.router)
@@ -35,6 +39,7 @@ app.mount(
 
 
 templates = Jinja2Templates("templates")
+ai_service = GeminiAIChatService(GEMINI_KEY)
 
 
 @app.get("/")
@@ -88,8 +93,7 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(
-            models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -150,8 +154,7 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(
-        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -308,12 +311,14 @@ def get_chat(request: Request, user: schema.UserOut = Depends(oauth2.get_user)):
 
 @app.websocket("/ws")
 async def websocket_connection(
-    websocket: WebSocket, user: schema.UserOut = Depends(oauth2.get_user)
+    websocket: WebSocket,
+    user: schema.UserOut = Depends(oauth2.get_user),
+    db: Session = Depends(db_client.get_db),
 ):
-    if user is None:
-        return templates.env.get_template("login.html").render(
-            {"message": "Session Expired, Please Login again"}
-        )
+    # if user is None:
+    #    return templates.get_template("login.html").render(
+    #        {"message": "Session Expired, Please Login again"}
+    #    )
     await websocket.accept()
     messages = []
     while True:
@@ -327,6 +332,21 @@ async def websocket_connection(
             await websocket.send_text(user_html)
 
             messages.append({"role": "user", "content": user_msg})
+            message_id = f"message-{uuid.uuid4().hex}"
+            sys_placeholder_html = templates.get_template("chat_partial.html").render(
+                {"message_text": "", "is_system": True, "message_id": message_id}
+            )
+            await websocket.send_text(sys_placeholder_html)
+
+            system_response = ai_service.process_message_stream(user_msg, user.id, db)
+
+            for chunk in system_response.split():
+                chunk_html = (
+                    f'<div id="{message_id}" hx-swap-oob="beforeend">{chunk} </div>'
+                )
+                await websocket.send_text(chunk_html)
+
+            messages.append({"role": "system", "content": system_response})
 
         except Exception as e:
             print(e)
