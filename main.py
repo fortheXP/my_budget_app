@@ -1,3 +1,4 @@
+import json
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -6,7 +7,9 @@ from fastapi import (
     status,
     Request,
     Form,
+    WebSocket,
 )
+import asyncio
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -85,7 +88,8 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(
+            models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -146,7 +150,8 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -286,6 +291,42 @@ def filter_transactions(
         "table-contents.html",
         {"request": request, "user": user, "transactions": transactions},
     )
+
+
+@app.get("/chat", response_class=HTMLResponse)
+def get_chat(request: Request, user: schema.UserOut = Depends(oauth2.get_user)):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "message": "Session Expired, Please Login again"},
+        )
+    return templates.TemplateResponse(
+        "chat.html",
+        {"request": request, "user": user},
+    )
+
+
+@app.websocket("/ws")
+async def websocket_connection(websocket: WebSocket):
+    await websocket.accept()
+    messages = []
+    while True:
+        try:
+            data = await websocket.receive_text()
+            print(data)
+            parsed = json.loads(data)
+            user_msg = parsed.get("message", "")
+            user_html = templates.env.get_template("chat_partial.html").render(
+                {"message_text": user_msg}
+            )
+            await websocket.send_text(user_html)
+
+            messages.append({"role": "user", "content": user_msg})
+
+        except Exception as e:
+            print(e)
+            await websocket.close()
+            break
 
 
 @app.get("/api")
