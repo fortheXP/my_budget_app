@@ -24,8 +24,7 @@ from pathlib import Path
 from app.routers.api import api_users, api_transactions
 import schema
 from app import utils, oauth2
-from app.services.gemini_chat_service import GeminiAIChatService
-from config import GEMINI_KEY
+from app.services.pydantic_ai_chat_service import process_message
 
 app = FastAPI()
 app.include_router(api_users.router)
@@ -39,7 +38,6 @@ app.mount(
 
 
 templates = Jinja2Templates("templates")
-ai_service = GeminiAIChatService(GEMINI_KEY)
 
 
 @app.get("/")
@@ -93,7 +91,8 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(
+            models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -154,7 +153,8 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -338,11 +338,12 @@ async def websocket_connection(
             )
             await websocket.send_text(sys_placeholder_html)
 
-            system_response = ai_service.process_message_stream(user_msg, user.id, db)
+            system_response = await process_message(user_msg, user.id, db)
 
             for chunk in system_response.split():
                 chunk_html = (
-                    f'<div id="{message_id}" hx-swap-oob="beforeend">{chunk} </div>'
+                    f'<div id="{
+                        message_id}" hx-swap-oob="beforeend">{chunk} </div>'
                 )
                 await websocket.send_text(chunk_html)
 
