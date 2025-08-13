@@ -192,6 +192,7 @@ def transactions(
         db.query(models.Transactions)
         .filter(models.Transactions.user_id == user.id)
         .options(joinedload(models.Transactions.category))
+        .order_by(models.Transactions.date.desc())
         .limit(10)
         .all()
     )
