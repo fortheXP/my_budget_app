@@ -1,4 +1,3 @@
-import os
 import json
 import uuid
 from datetime import date
@@ -12,7 +11,6 @@ from fastapi import (
     Form,
     WebSocket,
 )
-import asyncio
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -91,8 +89,7 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(
-            models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -153,8 +150,7 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(
-        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -327,25 +323,15 @@ async def websocket_connection(
             parsed = json.loads(data)
             user_msg = parsed.get("message", "").strip()
             user_html = templates.env.get_template("chat_partial.html").render(
-                {"message_text": user_msg}
+                {"message_text": user_msg, "is_system": False}
             )
             await websocket.send_text(user_html)
 
-            messages.append({"role": "user", "content": user_msg})
-            message_id = f"message-{uuid.uuid4().hex}"
-            sys_placeholder_html = templates.get_template("chat_partial.html").render(
-                {"message_text": "", "is_system": True, "message_id": message_id}
-            )
-            await websocket.send_text(sys_placeholder_html)
-
             system_response = await process_message(user_msg, user.id, db)
-
-            for chunk in system_response.split():
-                chunk_html = (
-                    f'<div id="{
-                        message_id}" hx-swap-oob="beforeend">{chunk} </div>'
-                )
-                await websocket.send_text(chunk_html)
+            response_html = templates.get_template("chat_partial.html").render(
+                {"message_text": system_response, "is_system": True}
+            )
+            await websocket.send_text(response_html)
 
             messages.append({"role": "system", "content": system_response})
 
