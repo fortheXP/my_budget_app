@@ -13,7 +13,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/auth")
 
 
 def authenticate_user(db: Session, username: str, password: str):
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(
+        models.User.username == username).first()
     if not user:
         return False
     if not utils.verify_password(password, user.password):
@@ -23,7 +24,8 @@ def authenticate_user(db: Session, username: str, password: str):
 
 def create_auth_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + \
+        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -31,7 +33,6 @@ def create_auth_token(data: dict):
 
 def verify_auth_token(token: str, credentials_exception: HTTPException):
     try:
-        print(token)
         payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
         id = payload.get("sub")
         token = schema.Token_Data(id=id)
@@ -49,9 +50,7 @@ def get_user(access_token: str = Cookie(None), db: Session = Depends(db_client.g
     )
     try:
         access_token = str.replace(str(access_token), "Bearer ", "")
-        print(access_token)
         token = verify_auth_token(access_token, credentials_exception)
-        print(token.id)
         user = db.query(models.User).filter(models.User.id == token.id).first()
         print(user)
         if user is None:
