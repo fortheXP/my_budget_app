@@ -4,15 +4,14 @@ from pydantic import BaseModel, Field
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
 from typing import Optional, Any, Union, Literal
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from collections import defaultdict
-import asyncio
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from config import GEMINI_KEY
 
-from database.models import User, Category, Transactions, Type
+from database.models import Category, Transactions, Type
 
 
 class TransactionData(BaseModel):
@@ -20,8 +19,7 @@ class TransactionData(BaseModel):
 
     amount: float = Field(..., description="Transaction amount in rupees")
     category: str = Field(..., description="Transaction category")
-    description: str = Field(...,
-                             description="Brief description of the transaction")
+    description: str = Field(..., description="Brief description of the transaction")
     transaction_type: Literal["Income", "Expense"] = Field(
         ..., description="Type of transaction"
     )
@@ -48,8 +46,7 @@ class SummaryRequest(BaseModel):
 class ConversationalResponse(BaseModel):
     """A simple conversational response"""
 
-    response: str = Field(...,
-                          description="A friendly, conversational response")
+    response: str = Field(..., description="A friendly, conversational response")
 
 
 class Deps(BaseModel):
@@ -80,6 +77,10 @@ First, determine the user's intent.
         -   For an 'Income' transaction, use the category: **'Other Income'**
 
 2.  **If the user is asking for a summary or report**, you MUST use the `SummaryRequest` format.
+    -   Infer the days from message for period_days. 
+    -   Try to inter the `transaction_type_filter` ('Income' or 'Expense') from the message, if it not given  `transaction_type_filter` is None
+    -   You must select a catgroy from the ones given above if no exiting category is a good fit, you can leave it None
+ 
 
 3.  **For any other general financial questions or greetings**, provide a friendly response using the `ConversationalResponse` format.
 """
@@ -97,8 +98,7 @@ def get_all_categories_from_db(db: Session) -> dict[str, list[str]]:
 def create_agent(dynamic_prompt):
     financial_agent = Agent(
         model=gemini_model,
-        output_type=Union[TransactionData,
-                          SummaryRequest, ConversationalResponse],
+        output_type=Union[TransactionData, SummaryRequest, ConversationalResponse],
         system_prompt=dynamic_prompt,
     )
     return financial_agent
@@ -139,20 +139,16 @@ async def process_message(user_message: str, user_id: int, db: Session):
         expense_cats = categories.get("Expense", [])
         income_cats = categories.get("Income", [])
 
-        # Ensure defaults are in the list for the prompt
         if "miscellaneous" not in expense_cats:
             expense_cats.append("miscellaneous")
         if "other income" not in income_cats:
             income_cats.append("other income")
 
         category_guidance = (
-            f"Available Expense Categories: {
-                ', '.join(sorted(expense_cats))}\n"
-            f"    Available Income Categories: {
-                ', '.join(sorted(income_cats))}"
+            f"Available Expense Categories: {', '.join(sorted(expense_cats))}\n"
+            f"    Available Income Categories: {', '.join(sorted(income_cats))}"
         )
 
-        # This full prompt is now cached in a global variable
         financial_agent = create_agent(
             SYSTEM_PROMPT_TEMPLATE.format(category_guidance=category_guidance)
         )
@@ -161,12 +157,10 @@ async def process_message(user_message: str, user_id: int, db: Session):
         result_data = response.output
 
         if isinstance(result_data, TransactionData):
-            # Get or create category
             category = get_or_create_category(
                 db, result_data.category, result_data.transaction_type
             )
 
-            # Create transaction
             new_transaction = Transactions(
                 user_id=user_id,
                 category_id=category.id,
@@ -185,8 +179,59 @@ async def process_message(user_message: str, user_id: int, db: Session):
             return f"✅ Added {result_data.transaction_type.lower()} of ₹{result_data.amount:,.2f} in {result_data.category} for '{result_data.description}'."
 
         elif isinstance(result_data, SummaryRequest):
-            # Here you would implement the logic to generate a financial summary
-            # This part is left as a placeholder for your implementation
+            cut_off_date = date.today() - timedelta(days=result_data.period_days)
+            if result_data.category_filter and result_data.transaction_type_filter:
+                category = get_or_create_category(
+                    db, result_data.category_filter, result_data.transaction_type_filter
+                )
+                summary = (
+                    db.query(
+                        Transactions.date,
+                        Transactions.amount,
+                        Transactions.type,
+                        Transactions.comment,
+                        Category.name.label("category"),
+                    )
+                    .join(Category)
+                    .filter(
+                        Transactions.category_id == category.id,
+                        Transactions.date >= cut_off_date,
+                    )
+                    .all()
+                )
+            elif result_data.transaction_type_filter:
+                summary = (
+                    db.query(
+                        Transactions.date,
+                        Transactions.amount,
+                        Transactions.type,
+                        Transactions.comment,
+                        Category.name.label("category"),
+                    )
+                    .join(Category)
+                    .filter(
+                        Transactions.type == result_data.transaction_type_filter,
+                        Transactions.date >= cut_off_date,
+                    )
+                    .all()
+                )
+            else:
+                summary = (
+                    db.query(
+                        Transactions.date,
+                        Transactions.amount,
+                        Transactions.type,
+                        Transactions.comment,
+                        Category.name.label("category"),
+                    )
+                    .join(Category)
+                    .filter(
+                        Transactions.date >= cut_off_date,
+                    )
+                    .all()
+                )
+            llm_input = format_for_llm(summary, "Transactions")
+            print(llm_input)
             return f"Ok, I will generate a summary for the last {result_data.period_days} days."
 
         elif isinstance(result_data, ConversationalResponse):
@@ -196,6 +241,40 @@ async def process_message(user_message: str, user_id: int, db: Session):
             return "I'm sorry, I'm not sure how to handle that request. Please try rephrasing."
 
     except Exception as e:
-        # It's good practice to log the full error for debugging purposes
         print(f"An error occurred: {e}")
         return "I'm sorry, I wasn't able to process that. Could you please try rephrasing it?"
+
+
+def format_for_llm(records, table_name="Records"):
+    """Most reliable version that works with any SQLAlchemy result"""
+    if not records:
+        return f"No {table_name.lower()} found."
+
+    output = f"{table_name} Data Summary:\n"
+    output += f"Total records: {len(records)}\n\n"
+
+    for i, record in enumerate(records, 1):
+        output += f"Record {i}:\n"
+
+        # Handle different types of records
+        if hasattr(record, "_fields"):  # Named tuple
+            for field in record._fields:
+                value = getattr(record, field)
+                output += f"  - {field}: {value}\n"
+
+        elif hasattr(record, "keys"):  # Row object
+            for key in record.keys():
+                value = record[key]
+                output += f"  - {key}: {value}\n"
+
+        elif hasattr(record, "__table__"):  # Model instance
+            for col in record.__table__.columns:
+                value = getattr(record, col.key)
+                output += f"  - {col.key}: {value}\n"
+
+        else:  # Fallback - convert to string
+            output += f"  - data: {record}\n"
+
+        output += "\n"
+
+    return output

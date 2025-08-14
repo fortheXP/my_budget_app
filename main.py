@@ -89,7 +89,8 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(
+            models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -150,7 +151,8 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -196,7 +198,6 @@ def transactions(
         .limit(10)
         .all()
     )
-    print(transactions)
     return templates.TemplateResponse(
         "transactions.html",
         {"request": request, "user": user, "transactions": transactions},

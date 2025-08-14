@@ -14,7 +14,7 @@
                   </div>
               </div>
           </div>
-          <div class="card-footer">
+          <div class="card-footer" id="chat-form">
               <form ws-send>
                   <div class="input-group">
                       <input id="chat-message"
@@ -26,6 +26,14 @@
                       <button type="submit" class="btn btn-primary">Send</button>
                   </div>
               </form>
+              <script>
+                const form = document.getElementById("chat-form");
+                const input = document.getElementById("chat-message");
+                form.addEventListener('submit',function(event){
+                  event.preventDefault();
+                  input.value='';
+                });
+              </script>
           </div>
         </div>
     </div>
