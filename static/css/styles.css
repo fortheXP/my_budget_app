@@ -156,3 +156,12 @@
         .signup-link a:hover {
             text-decoration: underline;
         }
+
+/* Fix for extra space in chat messages from marked.js */
+.markdown-message p {
+    margin-bottom: 0;
+}
+
+.mt-10 {
+    margin-top: 10rem !important;
+}

@@ -1,13 +1,26 @@
 
 <div id="message-list" hx-swap-oob="beforeend">
-  <div class="{% if is_system %}alert alert-info{% else %}alert alert-secondary{% endif %}" {% if message_id %}id="{{ message_id }}"{% endif %}>
-      {{ message_text | safe }}
-    </div>
-</div>
+  <div class="{% if is_system %}alert alert-info{% else %}alert alert-secondary{% endif %} markdown-message"
+       {% if message_id %}id="{{ message_id }}"{% endif %}
+       data-raw="{{ message_text }}">
+    {{ message_text }}
+  </div>
+  <script>
+    (function() {
+      const scriptTag = document.currentScript;
+      const messageElement = scriptTag.previousElementSibling;
+      if (messageElement) {
+        const rawContent = messageElement.getAttribute('data-raw');
+        if (rawContent) {
+          messageElement.innerHTML = marked.parse(rawContent);
+        }
+      }
 
-<script>
-    document.getElementById('chat-message').value = '';
-    const chatBox = document.getElementById('chat-box');
-    chatBox.scrollTop = chatBox.scrollHeight;
-</script>
+      const chatBox = document.getElementById('chat-box');
+      if (chatBox) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    })();
+  </script>
+</div>
 

@@ -1,13 +1,13 @@
 {% extends "base.html"%}
 {% block title %}Chat{% endblock %}
 {% block content %}
-<div class="container mt-4">
+<div class="container-lg mt-4">
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Chat with Budget Bot</h3>
         </div>
         <div hx-ext="ws" ws-connect="/ws">
-          <div class="card-body" id="chat-box"  style="height: 400px; overflow-y: scroll;">
+          <div class="card-body" id="chat-box"  style="height: 700px; overflow-y: scroll;">
               <div id="message-list">
                   <div class="alert alert-info" role="alert">
                     Hello {{ user.username }}, what can I help you with today?
@@ -26,16 +26,19 @@
                       <button type="submit" class="btn btn-primary">Send</button>
                   </div>
               </form>
-              <script>
-                const form = document.getElementById("chat-form");
-                const input = document.getElementById("chat-message");
-                form.addEventListener('submit',function(event){
-                  event.preventDefault();
-                  input.value='';
-                });
-              </script>
           </div>
         </div>
     </div>
 </div>
+
+<script>
+  document.addEventListener('htmx:wsAfterSend', function(event) {
+    const form = event.target;
+    const input = form.querySelector('input[name="message"]');
+    if (input) {
+      input.value = '';
+    }
+  });
+</script>
+
 {% endblock %}
