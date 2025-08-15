@@ -19,7 +19,8 @@ class TransactionData(BaseModel):
 
     amount: float = Field(..., description="Transaction amount in rupees")
     category: str = Field(..., description="Transaction category")
-    description: str = Field(..., description="Brief description of the transaction")
+    description: str = Field(...,
+                             description="Brief description of the transaction")
     transaction_type: Literal["Income", "Expense"] = Field(
         ..., description="Type of transaction"
     )
@@ -46,7 +47,8 @@ class SummaryRequest(BaseModel):
 class ConversationalResponse(BaseModel):
     """A simple conversational response"""
 
-    response: str = Field(..., description="A friendly, conversational response")
+    response: str = Field(...,
+                          description="A friendly, conversational response")
 
 
 class Deps(BaseModel):
@@ -98,10 +100,67 @@ def get_all_categories_from_db(db: Session) -> dict[str, list[str]]:
 def create_agent(dynamic_prompt):
     financial_agent = Agent(
         model=gemini_model,
-        output_type=Union[TransactionData, SummaryRequest, ConversationalResponse],
+        output_type=Union[TransactionData,
+                          SummaryRequest, ConversationalResponse],
         system_prompt=dynamic_prompt,
     )
     return financial_agent
+
+
+def create_summary_agent():
+    transactions_summary_agent = Agent(
+        model=gemini_model,
+        output_type=str,
+        system_prompt=(
+            """
+    You are a financial data analyst assistant. Your task is to take a series of financial records and provide a clear and concise summary for a specific date.
+
+    Instructions:
+
+    Identify the Date: All records will be for a single date. Identify and state this date clearly in your summary title.
+
+    Give transactions are in indian rupees.
+
+    Calculate Key Figures:
+
+        Calculate the Total Income by summing up all records with type: Type.Income.
+
+        Calculate the Total Expenses by summing up all records with type: Type.Expense.
+
+        Calculate the Net Flow by subtracting Total Expenses from Total Income.
+
+    Summarize the Financial Situation: Begin with a brief, one-sentence overview that describes the day's financial activity (e.g., whether expenses exceeded income).
+
+    Structure the Summary: Present the information in the following format:
+
+        A main title: "Financial Summary for [Date]".
+
+        A section for "Key Figures" listing Total Income, Total Expenses, and Net Flow.
+
+        A "Breakdown of Transactions" section.
+
+    Provide a Breakdown:
+
+        Under "Income," list the total amount received and specify the sources (categories).
+
+        Under "Expenses by Category," list each expense category that appeared in the data. For each category, provide the total amount spent and a brief description of the items in parentheses, based on the comment field.
+
+    Formatting: Use Markdown for clear formatting, including bolding for titles and key terms.
+
+        Example Input Data Format:
+
+        Record X:
+        - date: YYYY-MM-DD
+        - amount: 0.00
+        - type: Type.Expense or Type.Income
+        - comment: description of the transaction
+        - category: Transaction Category
+
+
+    """
+        ),
+    )
+    return transactions_summary_agent
 
 
 def get_or_create_category(
@@ -134,7 +193,6 @@ async def process_message(user_message: str, user_id: int, db: Session):
     deps = Deps(user_id=user_id, db_session=db)
 
     if not EXISTING_AGENT:
-        print("--- Building and caching system prompt for the first time ---")
         categories = get_all_categories_from_db(db)
         expense_cats = categories.get("Expense", [])
         income_cats = categories.get("Income", [])
@@ -145,10 +203,13 @@ async def process_message(user_message: str, user_id: int, db: Session):
             income_cats.append("other income")
 
         category_guidance = (
-            f"Available Expense Categories: {', '.join(sorted(expense_cats))}\n"
-            f"    Available Income Categories: {', '.join(sorted(income_cats))}"
+            f"Available Expense Categories: {
+                ', '.join(sorted(expense_cats))}\n"
+            f"    Available Income Categories: {
+                ', '.join(sorted(income_cats))}"
         )
 
+        transactions_summary_agent = create_summary_agent()
         financial_agent = create_agent(
             SYSTEM_PROMPT_TEMPLATE.format(category_guidance=category_guidance)
         )
@@ -231,8 +292,8 @@ async def process_message(user_message: str, user_id: int, db: Session):
                     .all()
                 )
             llm_input = format_for_llm(summary, "Transactions")
-            print(llm_input)
-            return f"Ok, I will generate a summary for the last {result_data.period_days} days."
+            response = await transactions_summary_agent.run(llm_input)
+            return response.output
 
         elif isinstance(result_data, ConversationalResponse):
             return result_data.response
