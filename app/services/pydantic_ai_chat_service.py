@@ -1,4 +1,3 @@
-# services/pydantic_ai_chat_service.py - Enhanced with a Single, More Capable Agent
 from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
 from pydantic_ai.models.google import GoogleModel
@@ -19,8 +18,7 @@ class TransactionData(BaseModel):
 
     amount: float = Field(..., description="Transaction amount in rupees")
     category: str = Field(..., description="Transaction category")
-    description: str = Field(...,
-                             description="Brief description of the transaction")
+    description: str = Field(..., description="Brief description of the transaction")
     transaction_type: Literal["Income", "Expense"] = Field(
         ..., description="Type of transaction"
     )
@@ -47,8 +45,7 @@ class SummaryRequest(BaseModel):
 class ConversationalResponse(BaseModel):
     """A simple conversational response"""
 
-    response: str = Field(...,
-                          description="A friendly, conversational response")
+    response: str = Field(..., description="A friendly, conversational response")
 
 
 class Deps(BaseModel):
@@ -100,8 +97,7 @@ def get_all_categories_from_db(db: Session) -> dict[str, list[str]]:
 def create_agent(dynamic_prompt):
     financial_agent = Agent(
         model=gemini_model,
-        output_type=Union[TransactionData,
-                          SummaryRequest, ConversationalResponse],
+        output_type=Union[TransactionData, SummaryRequest, ConversationalResponse],
         system_prompt=dynamic_prompt,
     )
     return financial_agent
@@ -113,13 +109,11 @@ def create_summary_agent():
         output_type=str,
         system_prompt=(
             """
-    You are a financial data analyst assistant. Your task is to take a series of financial records and provide a clear and concise summary for a specific date.
+    You are a financial data analyst assistant. Your task is to take a series of financial records and provide a clear and concise summary.
 
     Instructions:
 
-    Identify the Date: All records will be for a single date. Identify and state this date clearly in your summary title.
-
-    Give transactions are in indian rupees.
+    Given transactions are in indian rupees.
 
     Calculate Key Figures:
 
@@ -127,13 +121,9 @@ def create_summary_agent():
 
         Calculate the Total Expenses by summing up all records with type: Type.Expense.
 
-        Calculate the Net Flow by subtracting Total Expenses from Total Income.
 
-    Summarize the Financial Situation: Begin with a brief, one-sentence overview that describes the day's financial activity (e.g., whether expenses exceeded income).
 
     Structure the Summary: Present the information in the following format:
-
-        A main title: "Financial Summary for [Date]".
 
         A section for "Key Figures" listing Total Income, Total Expenses, and Net Flow.
 
@@ -203,10 +193,8 @@ async def process_message(user_message: str, user_id: int, db: Session):
             income_cats.append("other income")
 
         category_guidance = (
-            f"Available Expense Categories: {
-                ', '.join(sorted(expense_cats))}\n"
-            f"    Available Income Categories: {
-                ', '.join(sorted(income_cats))}"
+            f"Available Expense Categories: {', '.join(sorted(expense_cats))}\n"
+            f"    Available Income Categories: {', '.join(sorted(income_cats))}"
         )
 
         transactions_summary_agent = create_summary_agent()
