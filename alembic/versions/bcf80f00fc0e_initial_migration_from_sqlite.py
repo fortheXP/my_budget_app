@@ -34,10 +34,9 @@ def upgrade():
         "category",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("name", sa.String(), nullable=True),
-        sa.Column("type", sa.String(), nullable=True),
+        sa.Column("type", sa.Enum("Income", "Expense", name="type"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
-        sa.UniqueConstraint("type"),
     )
     op.create_index(op.f("ix_category_type"), "category", ["type"], unique=True)
 
