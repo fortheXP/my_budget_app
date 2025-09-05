@@ -38,7 +38,7 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name"),
     )
-    op.create_index(op.f("ix_category_type"), "category", ["type"], unique=True)
+    op.create_index(op.f("ix_category_type"), "category", ["type"], unique=False)
 
     # Create transactions table
     op.create_table(

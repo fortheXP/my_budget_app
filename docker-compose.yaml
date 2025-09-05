@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: budget_db
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data   
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d budget_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # This container ONLY does database setup, then exits
+  db-migrate:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://appuser:password@db:5432/budget_db
+    command: |
+      sh -c "
+        echo 'Running migrations...'
+        alembic upgrade head
+        echo 'Seeding data...'
+        ls
+        python seed_data.py
+        echo 'Database setup complete!'
+      "
+    restart: "no"  
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://appuser:password@db:5432/budget_db
+      - SECRET_KEY=Ac3P8MknL7DFFrr524lyII__31nn-7ot0-AL0PeKWmo=
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - GOOGLE_API_KEY="AIzaSyA-ubr2CrGvxm4l5Dfcrlk8NsvaM5_p-BY"
+    depends_on:
+      - db-migrate  
+
