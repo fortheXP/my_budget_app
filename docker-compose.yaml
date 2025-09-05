@@ -4,15 +4,15 @@ services:
     container_name: postgres-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: budget_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data   
+      - /opt/my_budget_app/postgres-data:/var/lib/postgresql/data   
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser -d budget_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://appuser:password@db:5432/budget_db
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_USER}@db:5432/${DB_NAME}
     command: |
       sh -c "
         echo 'Running migrations...'
@@ -40,11 +40,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://appuser:password@db:5432/budget_db
-      - SECRET_KEY=Ac3P8MknL7DFFrr524lyII__31nn-7ot0-AL0PeKWmo=
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-      - GOOGLE_API_KEY="AIzaSyA-ubr2CrGvxm4l5Dfcrlk8NsvaM5_p-BY"
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_USER}@db:5432/${DB_NAME}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     depends_on:
       - db-migrate  
 
