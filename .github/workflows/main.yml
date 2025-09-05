@@ -21,17 +21,20 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}      
           script: |
             set -e
+            sudo mkdir -p /opt/my_budget_app
+            sudo chown -R $USER:$USER /opt/my_budget_app 
+            
             sudo mkdir -p /opt/my_budget_data
-            sudo chown 999:999 /opt/my_budget_data
-
+            sudo chown -R 999:999 /opt/my_budget_data  
+            
             if [ ! -d "/opt/my_budget_app/.git" ]; then
-              sudo rm -rf /opt/my_budget_app
-              git clone https://github.com/${GITHUB_REPOSITORY}.git /opt/my_budget_app
+              sudo git clone https://github.com/${GITHUB_REPOSITORY}.git /opt/my_budget_app
             else
               cd /opt/my_budget_app
-              git fetch origin main
-              git reset --hard origin/main
+              sudo git fetch origin main
+              sudo git reset --hard origin/main
             fi
-
-            docker compose build
-            docker compose up -d
+            
+            cd /opt/my_budget_app
+            sudo docker compose build
+            sudo docker compose up -d
