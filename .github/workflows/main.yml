@@ -3,7 +3,7 @@ name: Deploy to Oracle VM
 on:
   push:
     branches:
-      - main   # deploy when pushing to main
+      - main  
 
 jobs:
   deploy:
@@ -15,26 +15,81 @@ jobs:
 
       - name: Deploy on Oracle VM
         uses: appleboy/ssh-action@v1.2.0
+        env :
+          DB_USER = ${{ secrets.DB_USER }}
+          DB_PASSWORD = ${{ secrets.DB_PASSWORD }}
+          DB_NAME = ${{ secrets.DB_NAME }}
+
+          SECRET_KEY = ${{ secrets.SECRET_KEY }}
+          ALGORITHM = ${{ secrets.ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES = ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          GOOGLE_API_KEY = ${{ secrets.GOOGLE_API_KEY }}
+
         with:
           host: ${{ secrets.SERVER_HOST }}       
           username: ${{ secrets.SERVER_USER }}    
           key: ${{ secrets.SERVER_SSH_KEY }}      
+          env: DB_USER,DB_PASSWORD,DB_NAME,SECRET_KEY,ALGORITHM,ACCESS_TOKEN_EXPIRE_MINUTES,GOOGLE_API_KEY
           script: |
             set -e
+            echo "starting deployment"
+            # Create directories with proper permissions
             sudo mkdir -p /opt/my_budget_app
             sudo chown -R $USER:$USER /opt/my_budget_app 
             
+            # Create data directory for PostgreSQL
             sudo mkdir -p /opt/my_budget_data
-            sudo chown -R 999:999 /opt/my_budget_data  
-            
+            sudo chown -R $USER:$USER /opt/my_budget_data
+
             if [ ! -d "/opt/my_budget_app/.git" ]; then
-              sudo git clone https://github.com/${GITHUB_REPOSITORY}.git /opt/my_budget_app
+              echo "Cloning repository..."
+              git clone https://github.com/${GITHUB_REPOSITORY}.git /opt/my_budget_app
             else
+              echo "Updating repository..."
               cd /opt/my_budget_app
-              sudo git fetch origin main
-              sudo git reset --hard origin/main
+              git fetch origin main
+              git reset --hard origin/main
             fi
             
             cd /opt/my_budget_app
-            sudo docker compose build
+            # Create environment file from GitHub secrets
+            echo "Creating environment configuration..."
+            cat > .env << EOF
+            DB_USER=$DB_USER
+            DB_PASSWORD=$DB_PASSWORD
+            DB_NAME=$DB_NAME
+            SECRET_KEY=$SECRET_KEY
+            ALGORITHM=$ALGORITHM
+            ACCESS_TOKEN_EXPIRE_MINUTES=$ACCESS_TOKEN_EXPIRE_MINUTES
+            GOOGLE_API_KEY=$GOOGLE_API_KEY
+            EOF
+            
+            chmod 600 .env
+
+            echo "Stopping existing application"
+            sudo docker compose down || true
+
+            echo "Build application"
+            sudo docker compose build --no-cache
+
+            echo "Starting application.."
             sudo docker compose up -d
+
+            sleep 30
+
+            if curl -f http://localhost:8000/api >/dev/null 2>&1; then
+              echo "Application is healthy!"
+            else
+              echo "Application health check failed, checking logs..."
+              sudo docker compose logs app
+            fi
+
+            # Clean up old Docker images
+            echo "Cleaning up old images..."
+            sudo docker image prune -f
+            
+            echo "Deployment completed!"
+            
+            # Show final status
+            echo "Final service status:"
+            sudo docker compose ps
