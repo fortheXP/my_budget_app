@@ -29,11 +29,15 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}       
           username: ${{ secrets.SERVER_USER }}    
           key: ${{ secrets.SERVER_SSH_KEY }}      
-          env: DB_USER,DB_PASSWORD,DB_NAME,SECRET_KEY,ALGORITHM,ACCESS_TOKEN_EXPIRE_MINUTES,GOOGLE_API_KEY
+          envs: DB_USER,DB_PASSWORD,DB_NAME,SECRET_KEY,ALGORITHM,ACCESS_TOKEN_EXPIRE_MINUTES,GOOGLE_API_KEY
           script: |
             set -e
             echo "starting deployment"
             # Create directories with proper permissions
+            #
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+            echo $REPO_URL
+            
             sudo mkdir -p /opt/my_budget_app
             sudo chown -R $USER:$USER /opt/my_budget_app 
             
@@ -43,7 +47,7 @@ jobs:
 
             if [ ! -d "/opt/my_budget_app/.git" ]; then
               echo "Cloning repository..."
-              git clone https://github.com/${{ github.repository }}..git /opt/my_budget_app
+              git clone "$REPO_URL" /opt/my_budget_app
             else
               echo "Updating repository..."
               cd /opt/my_budget_app
