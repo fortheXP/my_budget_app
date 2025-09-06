@@ -22,12 +22,10 @@ from app.routers.api import api_users, api_transactions
 import schema
 from app import utils, oauth2
 from app.services.pydantic_ai_chat_service import process_message
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 
 app = FastAPI()
 app.include_router(api_users.router)
 app.include_router(api_transactions.router)
-app.add_middleware(ProxyHeadersMiddleware)
 
 app.mount(
     "/static",
@@ -90,7 +88,8 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(
+            models.Category.type == in_or_exp).all()
     )
 
     return templates.TemplateResponse(
@@ -151,7 +150,8 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(
+        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
