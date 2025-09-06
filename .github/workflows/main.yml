@@ -16,14 +16,14 @@ jobs:
       - name: Deploy on Oracle VM
         uses: appleboy/ssh-action@v1.2.0
         env :
-          DB_USER = ${{ secrets.DB_USER }}
-          DB_PASSWORD = ${{ secrets.DB_PASSWORD }}
-          DB_NAME = ${{ secrets.DB_NAME }}
+          DB_USER : ${{ secrets.DB_USER }}
+          DB_PASSWORD : ${{ secrets.DB_PASSWORD }}
+          DB_NAME : ${{ secrets.DB_NAME }}
 
-          SECRET_KEY = ${{ secrets.SECRET_KEY }}
-          ALGORITHM = ${{ secrets.ALGORITHM }}
-          ACCESS_TOKEN_EXPIRE_MINUTES = ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
-          GOOGLE_API_KEY = ${{ secrets.GOOGLE_API_KEY }}
+          SECRET_KEY : ${{ secrets.SECRET_KEY }}
+          ALGORITHM : ${{ secrets.ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES : ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          GOOGLE_API_KEY : ${{ secrets.GOOGLE_API_KEY }}
 
         with:
           host: ${{ secrets.SERVER_HOST }}       
