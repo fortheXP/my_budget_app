@@ -43,7 +43,7 @@ jobs:
 
             if [ ! -d "/opt/my_budget_app/.git" ]; then
               echo "Cloning repository..."
-              git clone https://github.com/${GITHUB_REPOSITORY}.git /opt/my_budget_app
+              git clone https://github.com/${{ github.repository }}..git /opt/my_budget_app
             else
               echo "Updating repository..."
               cd /opt/my_budget_app
