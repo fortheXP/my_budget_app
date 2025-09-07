@@ -27,6 +27,16 @@ app = FastAPI()
 app.include_router(api_users.router)
 app.include_router(api_transactions.router)
 
+
+@app.middleware("http")
+async def force_https_urls(request: Request, call_next):
+    # Check if we're behind a reverse proxy serving HTTPS
+    if request.headers.get("x-forwarded-proto") == "https":
+        request.scope["scheme"] = "https"
+    response = await call_next(request)
+    return response
+
+
 app.mount(
     "/static",
     StaticFiles(directory=Path(__file__).parent.absolute() / "static"),
