@@ -4,10 +4,9 @@ Database seeding script to populate initial data
 """
 
 import sys
-import os
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.models import Base, Category, Type
+from database.models import Category, Type
 from config import DATABASE_URL
 
 
@@ -17,6 +16,13 @@ def create_categories(session):
     # Default expense categories
     expense_categories = [
         "Food & Dining",
+        "Groceries",
+        "Credit Card Bill",
+        "Home Loan",
+        "Personal Loan",
+        "EMI",
+        "Fuel",
+        "Subscriptions",
         "Transportation",
         "Shopping",
         "Entertainment",
