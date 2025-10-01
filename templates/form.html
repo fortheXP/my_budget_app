@@ -1,7 +1,8 @@
         <div class="card-body">
           <form action="/transactions/insert" method="POST" 
                 hx-post="/transactions/insert" 
-			hx-swap="outerHTML" >
+			hx-swap="outerHTML"
+          onsubmit="stripCommas()">
 
             <!-- Date -->
             <div class="mb-3 row">
@@ -46,7 +47,7 @@
             <div class="mb-3 row">
               <label for="famount" class="col-sm-3 col-form-label">Amount</label>
               <div class="col-sm-9">
-                <input type="number" class="form-control" id="famount" name="amount" required>
+                <input type="text" class="form-control" id="famount" name="amount" oninput="formatNumber(this)" required>
               </div>
             </div>
 
@@ -74,6 +75,31 @@
             </div>
 
           </form>
+            <script>
+            function formatNumber(input){
+                // Remove everything except digits and dot
+                let value = input.value.replace(/[^\d.]/g, '');
+
+                // Split integer and decimal parts
+                let parts = value.split(".");
+                let integerPart = parts[0];
+                // If decimal exists or input ends with dot, preserve it
+                let decimalPart = parts[1] !== undefined ? "." + parts[1] : (value.endsWith(".") ? "." : "");
+
+                // Format only integer part with Indian commas
+                if (integerPart) {
+                    integerPart = Number(integerPart).toLocaleString('en-IN');
+                }
+
+                // Recombine
+                input.value = integerPart + decimalPart;
+            }
+
+            function stripCommas(){
+              let input = document.getElementById("famount");
+              input.value = Number(input.value.replace(/,/g,''));
+            }
+            </script>
       </div>
     </div>
   </div>
