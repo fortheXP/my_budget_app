@@ -12,6 +12,17 @@
               </div>
             </div>
 
+            <script>
+              document.body.addEventListener('htmx:afterSwap', (event) => {
+                // Check if the newly swapped content contains the date input
+                const fdate = document.getElementById('fdate');
+                if (fdate && !fdate.value) {
+                  const today = new Date().toISOString().split('T')[0];
+                  fdate.value = today;
+                  console.log("htmx:afterSwap → date set to", today);
+                }
+              });
+            </script>
             <!-- Income/Expense -->
             <fieldset class="mb-3 row">
               <legend class="col-form-label col-sm-3 pt-0">Type</legend>
