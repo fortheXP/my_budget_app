@@ -31,7 +31,7 @@ def create_categories(session):
         "Education",
         "Travel",
         "Miscellaneous",
-        "Family&Friends".
+        "Family&Friends",
     ]
 
     # Default income categories
