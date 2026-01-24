@@ -1,0 +1,13 @@
+<tr>
+  <td>{{ transaction.date }}</td>
+  <td>{{ transaction.category.name }}</td>
+  <td>{{ transaction.type.value }}</td>
+  <td>{{ transaction.amount }}</td>
+  <td>
+    <button class="btn danger"
+            hx-get="/transactions/{{transaction.id}}/edit"
+            hx-trigger="click">
+      Edit
+    </button>
+  </td>
+</tr>

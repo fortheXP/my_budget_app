@@ -1,0 +1,52 @@
+<tr hx-trigger='cancel' class='editing' hx-get="/transactions/{{transaction.id}}">
+  <td><input autofocus name='date' type="date" value='{{ transaction.date }}'></td>
+  <td id="edit_category_wrapper"> 
+    <select name="category" id="category" required>
+      <option value="" disabled selected>-- Select an item --</option>
+      <option value="{{ transaction.category.id }}" selected>{{ transaction.category.name }}</option>
+    </select>
+  </td>
+  <td>
+    <input type="hidden" name="current_category_id" value="{{ transaction.category.id }}">
+    <select name='in_or_exp' hx-post="/get_category" hx-target="#edit_category_wrapper" hx-swap="innerHTML" hx-trigger="change,load" hx-include="[name='in_or_exp'], [name='current_category_id']">
+      <option value="Income" {% if transaction.type.value == "Income" %}selected{% endif %}>Income</option>
+      <option value="Expense" {% if transaction.type.value == "Expense" %}selected{% endif %}>Expense</option>
+    </select>
+  </td>
+  <td><input type="text" name='amount' value='{{ transaction.amount }}' oninput="formatNumber(this)"></td>
+  <td>
+    <button class="btn danger" hx-get="/transactions/{{transaction.id}}">
+      Cancel
+    </button>
+    <button class="btn danger" onclick="return validateCategory(event)" hx-post="/transactions/{{transaction.id}}" hx-include="closest tr">
+      Save
+    </button>
+    <script>
+      function formatNumber(input){
+          let value = input.value.replace(/[^\d.]/g, '');
+          let parts = value.split(".");
+          let integerPart = parts[0];
+          let decimalPart = parts[1] !== undefined ? "." + parts[1] : (value.endsWith(".") ? "." : "");
+          if (integerPart) {
+              integerPart = Number(integerPart).toLocaleString('en-IN');
+          }
+          input.value = integerPart + decimalPart;
+      }
+      function stripCommas(){
+        let input = document.getElementById("famount"); // Assuming famount is the ID for the amount input
+        if (input) {
+          input.value = Number(input.value.replace(/,/g,''));
+        }
+      }
+      function validateCategory(event) {
+        const categorySelect = document.getElementById("category");
+        if (!categorySelect.value || categorySelect.value === "") {
+          event.preventDefault();
+          alert("Please select a category");
+          return false;
+        }
+        return true;
+      }
+    </script>
+  </td>
+</tr>

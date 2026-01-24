@@ -7,16 +7,12 @@
                             <th scope="col">Category</th>
                             <th scope="col">Type</th>
                             <th scope="col">Amount</th>
+                            <th scope="col">Edit</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody hx-target="closest tr" hx-swap="outerHTML">
                         {% for transaction in transactions %}
-                        <tr>
-                            <td>{{ transaction.date }}</td>
-                            <td>{{ transaction.category.name }}</td>
-                            <td>{{ transaction.type.value }}</td>
-                            <td>{{ transaction.amount }}</td>
-                        </tr>
+                            {% include 'transaction.html'%}
                         {% endfor %}
                     </tbody>
                 </table>
