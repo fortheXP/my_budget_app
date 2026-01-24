@@ -1,6 +1,6 @@
 <select name="category" id="category" required>
-    <option value="">-- Select an item --</option>
+    <option value="" {% if not current_category_id or not current_category_exists %}selected{% endif %} disabled>-- Select an item --</option>
     {% for category in categories %}
-        <option value="{{ category.id }}">{{ category.name }}</option>
+        <option value="{{ category.id }}" {% if current_category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
     {% endfor %}
 </select>

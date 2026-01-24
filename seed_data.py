@@ -85,8 +85,6 @@ def create_categories(session):
 def main():
     """Main seeding function"""
     try:
-        print(f"onnecting to database: {DATABASE_URL}")
-
         # Create engine and session
         engine = create_engine(DATABASE_URL)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

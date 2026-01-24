@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from decimal import Decimal
 from fastapi import (
     FastAPI,
     HTTPException,
@@ -16,6 +17,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_
 from database import models, db_client
+from database.models import Type
 from typing import Annotated, Optional
 from pathlib import Path
 from app.routers.api import api_users, api_transactions
@@ -89,6 +91,7 @@ def check_username(
 def get_category(
     request: Request,
     in_or_exp: Annotated[str, Form()],
+    current_category_id: Annotated[Optional[int], Form()] = None,
     db: Session = Depends(db_client.get_db),
     user: schema.UserOut = Depends(oauth2.get_user),
 ):
@@ -102,9 +105,21 @@ def get_category(
             models.Category.type == in_or_exp).all()
     )
 
+    # Check if current category exists in the new type's categories
+    current_category_exists = (
+        any(cat.id == current_category_id for cat in categories)
+        if current_category_id
+        else False
+    )
+
     return templates.TemplateResponse(
         "category_option.html",
-        {"request": request, "categories": categories},
+        {
+            "request": request,
+            "categories": categories,
+            "current_category_id": current_category_id,
+            "current_category_exists": current_category_exists,
+        },
     )
 
 
@@ -227,6 +242,43 @@ def transactions_insert(
     return templates.TemplateResponse("insert.html", {"request": request, "user": user})
 
 
+@app.post("/transactions/filter")
+def filter_transactions(
+    request: Request,
+    type: Annotated[str, Form()],
+    db: Session = Depends(db_client.get_db),
+    user: schema.UserOut = Depends(oauth2.get_user),
+):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "message": "Session Expired, Please Login again"},
+        )
+    print(type)
+    if type == "Any":
+        transactions = (
+            db.query(models.Transactions)
+            .filter(models.Transactions.user_id == user.id)
+            .options(joinedload(models.Transactions.category))
+            .limit(10)
+            .all()
+        )
+    else:
+        transactions = (
+            db.query(models.Transactions)
+            .filter(
+                and_(models.Transactions.user_id == user.id),
+                models.Transactions.type == type,
+            )
+            .options(joinedload(models.Transactions.category))
+            .all()
+        )
+    return templates.TemplateResponse(
+        "table-contents.html",
+        {"request": request, "user": user, "transactions": transactions},
+    )
+
+
 @app.post("/transactions/insert")
 def insert_transaction(
     request: Request,
@@ -266,10 +318,42 @@ def insert_transaction(
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.post("/transactions/filter")
-def filter_transactions(
+@app.get("/transactions/{id}", response_class=HTMLResponse)
+def get_transaction(
     request: Request,
-    type: Annotated[str, Form()],
+    user: schema.UserOut = Depends(oauth2.get_user),
+    db: Session = Depends(db_client.get_db),
+    id: int = 0,
+):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "message": "Session Expired, Please Login again"},
+        )
+    transaction = (
+        db.query(models.Transactions)
+        .filter(
+            and_(models.Transactions.user_id == user.id),
+            models.Transactions.id == id,
+        )
+        .first()
+    )
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return templates.TemplateResponse(
+        "transaction.html",
+        {"request": request, "user": user, "transaction": transaction},
+    )
+
+
+@app.post("/transactions/{id}", response_class=HTMLResponse)
+def upate_transaction(
+    request: Request,
+    id: int,
+    date: Annotated[date, Form()],
+    in_or_exp: Annotated[str, Form()],
+    amount: Annotated[float, Form()],
+    category: Annotated[Optional[int], Form()] = None,
     db: Session = Depends(db_client.get_db),
     user: schema.UserOut = Depends(oauth2.get_user),
 ):
@@ -278,28 +362,53 @@ def filter_transactions(
             "login.html",
             {"request": request, "message": "Session Expired, Please Login again"},
         )
-    print(type)
-    if type == "Any":
-        transactions = (
-            db.query(models.Transactions)
-            .filter(models.Transactions.user_id == user.id)
-            .options(joinedload(models.Transactions.category))
-            .limit(10)
-            .all()
-        )
-    else:
-        transactions = (
-            db.query(models.Transactions)
-            .filter(
-                and_(models.Transactions.user_id == user.id),
-                models.Transactions.type == type,
-            )
-            .options(joinedload(models.Transactions.category))
-            .all()
-        )
+
+    transaction = db.get(models.Transactions, id)
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    if transaction.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    print(date, in_or_exp, amount, category)
+    transaction.date = date
+    transaction.type = Type(in_or_exp)
+    transaction.amount = Decimal(str(amount))
+    transaction.category_id = category
+
+    db.commit()
+
     return templates.TemplateResponse(
-        "table-contents.html",
-        {"request": request, "user": user, "transactions": transactions},
+        "transaction.html",
+        {"request": request, "user": user, "transaction": transaction},
+    )
+
+
+@app.get("/transactions/{id}/edit", response_class=HTMLResponse)
+def edit_transaction(
+    request: Request,
+    user: schema.UserOut = Depends(oauth2.get_user),
+    db: Session = Depends(db_client.get_db),
+    id: int = 0,
+):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "message": "Session Expired, Please Login again"},
+        )
+    transaction = (
+        db.query(models.Transactions)
+        .filter(
+            and_(models.Transactions.user_id == user.id),
+            models.Transactions.id == id,
+        )
+        .first()
+    )
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return templates.TemplateResponse(
+        "transaction-edit.html",
+        {"request": request, "user": user, "transaction": transaction},
     )
 
 
