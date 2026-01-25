@@ -165,3 +165,8 @@
 .mt-10 {
     margin-top: 10rem !important;
 }
+
+tr.htmx-swapping td {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}

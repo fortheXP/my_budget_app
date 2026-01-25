@@ -1,4 +1,4 @@
-<tr>
+<tr id= "transaction-{{ transaction.id }}">
   <td>{{ transaction.date }}</td>
   <td>{{ transaction.category.name }}</td>
   <td>{{ transaction.type.value }}</td>
@@ -8,6 +8,9 @@
             hx-get="/transactions/{{transaction.id}}/edit"
             hx-trigger="click">
       Edit
+    </button>
+    <button class="btn danger" hx-target="closest tr" hx-swap="outerHTML swap:1s" hx-confirm="Are you sure?" hx-delete="/transactions/{{transaction.id}}">
+      Delete
     </button>
   </td>
 </tr>
