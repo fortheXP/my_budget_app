@@ -101,8 +101,7 @@ def get_category(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
     categories = (
-        db.query(models.Category).filter(
-            models.Category.type == in_or_exp).all()
+        db.query(models.Category).filter(models.Category.type == in_or_exp).all()
     )
 
     # Check if current category exists in the new type's categories
@@ -175,8 +174,7 @@ def login_user(
         )
 
     access_token = oauth2.create_auth_token({"sub": user.id})
-    response = RedirectResponse(
-        url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="access_token", value=f"Bearer {access_token}", httponly=True
     )
@@ -346,10 +344,10 @@ def get_transaction(
     )
 
 
-@app.post("/transactions/{id}", response_class=HTMLResponse)
+@app.post("/transactions/{transaction_id}", response_class=HTMLResponse)
 def upate_transaction(
     request: Request,
-    id: int,
+    transaction_id: int,
     date: Annotated[date, Form()],
     in_or_exp: Annotated[str, Form()],
     amount: Annotated[float, Form()],
@@ -363,14 +361,13 @@ def upate_transaction(
             {"request": request, "message": "Session Expired, Please Login again"},
         )
 
-    transaction = db.get(models.Transactions, id)
+    transaction = db.get(models.Transactions, transaction_id)
     if transaction is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
     if transaction.user_id != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    print(date, in_or_exp, amount, category)
     transaction.date = date
     transaction.type = Type(in_or_exp)
     transaction.amount = Decimal(str(amount))
@@ -384,12 +381,35 @@ def upate_transaction(
     )
 
 
-@app.get("/transactions/{id}/edit", response_class=HTMLResponse)
-def edit_transaction(
+@app.delete("/transactions/{transaction_id}")
+def delete_transaction(
     request: Request,
+    transaction_id: int,
     user: schema.UserOut = Depends(oauth2.get_user),
     db: Session = Depends(db_client.get_db),
-    id: int = 0,
+):
+    if user is None:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "message": "Session Expired, Please Login again"},
+        )
+    transaction = db.get(models.Transactions, transaction_id)
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    if transaction.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    db.delete(transaction)
+    db.commit()
+    return Response(status_code=200)
+
+
+@app.get("/transactions/{transaction_id}/edit", response_class=HTMLResponse)
+def edit_transaction(
+    request: Request,
+    transaction_id: int,
+    user: schema.UserOut = Depends(oauth2.get_user),
+    db: Session = Depends(db_client.get_db),
 ):
     if user is None:
         return templates.TemplateResponse(
@@ -400,7 +420,7 @@ def edit_transaction(
         db.query(models.Transactions)
         .filter(
             and_(models.Transactions.user_id == user.id),
-            models.Transactions.id == id,
+            models.Transactions.id == transaction_id,
         )
         .first()
     )
