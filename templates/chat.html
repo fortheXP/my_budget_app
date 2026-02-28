@@ -41,6 +41,14 @@
       input.value = '';
     }
   });
+
+  document.addEventListener('htmx:wsclose', function(event) {
+    console.log('WebSocket connection closed');
+  });
+
+  document.addEventListener('htmx:wse', function(event) {
+    console.log('WebSocket error:', event.detail);
+  });
 </script>
 
 {% endblock %}
