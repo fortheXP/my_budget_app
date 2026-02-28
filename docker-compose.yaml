@@ -26,12 +26,7 @@ services:
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
     command: |
       sh -c "
-        echo 'Running migrations...'
-        alembic upgrade head
-        echo 'Seeding data...'
-        ls
-        python seed_data.py
-        echo 'Database setup complete!'
+        bash init_script
       "
     restart: "no"  
 
