@@ -6,10 +6,8 @@ from datetime import date
 
 
 def validate_date(value: date) -> date:
-    try:
-        datetime.s(value, "%Y-%m-%d")
-    except Exception as e:
-        raise e
+    if value > date.today():
+        raise ValueError("Date cannot be in the future")
     return value
 
 
