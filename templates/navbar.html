@@ -6,6 +6,10 @@
             <img src="{{url_for('static', path='/images/budgeting.png')}}"  width="33" height="30" class="d-inline-block align-text-top me-2">
       <span class="fw-bold text-light">Budgeting App</span>
     </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
       <li class="nav-item mx-2">
           <a href="{{ url_for('signup') }}"  class="nav-link d-flex align-items-center text-light">
@@ -18,11 +22,16 @@
           </a>
       </li>
     </ul>
+    </div>
     {% else %}
     <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
             <img src="{{url_for('static', path='/images/budgeting.png')}}"  width="33" height="30" class="d-inline-block align-text-top me-2">
       <span class="fw-bold text-light">Budgeting App</span>
     </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
       <li class="nav-item mx-2">
           <a href="{{ url_for('transactions_insert') }}"  class="nav-link d-flex align-items-center text-light">
@@ -46,6 +55,7 @@
           </a>
       </li>
     </ul>
+    </div>
       {% endif %}
   </div>
 </nav>
